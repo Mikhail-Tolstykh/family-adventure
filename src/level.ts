@@ -1,12 +1,12 @@
 // Level 1 "Побережье". Coordinates are in tiles (32px); rows 0..19 top to bottom, plus EXTRA_ROWS of floor.
 // Built in code for now; later levels can come from the Tiled editor.
 
-export const T = { GRASS: 0, DIRT: 1, PLANK: 2, WATER_TOP: 3, WATER: 4, ROCK: 5 } as const;
+export const T = { GRASS: 0, DIRT: 1, PLANK: 2, WATER_TOP: 3, WATER: 4, ROCK: 5, GRASS_L: 6, GRASS_R: 7, DIRT_2: 8 } as const;
 // The camera shows rows VIEW_TOP..VIEW_TOP+19; rows above it are hidden sky.
 export const EXTRA_ROWS = 3;
 export const VIEW_TOP = EXTRA_ROWS * 32;
 
-export const SOLID_TILES = [T.GRASS, T.DIRT, T.PLANK, T.ROCK];
+export const SOLID_TILES = [T.GRASS, T.DIRT, T.PLANK, T.ROCK, T.GRASS_L, T.GRASS_R, T.DIRT_2];
 
 export interface Pt { x: number; y: number }
 export interface LevelData {
@@ -99,7 +99,11 @@ export function buildLevel(): LevelData {
 
   const solidAt = (x: number, y: number) => y >= 0 && g[y][x] === 'S';
   const tiles = g.map((r, y) => r.map((c, x) => {
-    if (c === 'S') return solidAt(x, y - 1) ? T.DIRT : T.GRASS;
+    if (c === 'S') {
+      if (solidAt(x, y - 1)) return (x * 7 + y * 3) % 5 === 0 ? T.DIRT_2 : T.DIRT;
+      const l = x > 0 && g[y][x - 1] === 'S', r = x < W - 1 && g[y][x + 1] === 'S';
+      return !l && r ? T.GRASS_L : l && !r ? T.GRASS_R : T.GRASS;
+    }
     if (c === 'W') return y > 0 && g[y - 1][x] === '.' ? T.WATER_TOP : T.WATER;
     if (c === 'R') return T.ROCK;
     return -1;

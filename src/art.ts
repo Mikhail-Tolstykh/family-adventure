@@ -1,11 +1,11 @@
-// Placeholder pixel art generated in code. Each texture will later be replaced
-// by sprites made in Gemini / ChatGPT with the same key and size.
+// Placeholder pixel art generated in code. Any texture with the same key loaded
+// from public/assets (art made in Gemini / ChatGPT) replaces it.
 import Phaser from 'phaser';
 
 type Px = (x: number, y: number, w: number, h: number, c: string) => void;
 
 function tex(scene: Phaser.Scene, key: string, w: number, h: number, unit: number, draw: (p: Px, ctx: CanvasRenderingContext2D) => void) {
-  if (scene.textures.exists(key)) scene.textures.remove(key);
+  if (scene.textures.exists(key)) return; // real art loaded from public/assets wins
   const t = scene.textures.createCanvas(key, w * unit, h * unit)!;
   const ctx = t.getContext();
   ctx.imageSmoothingEnabled = false;
@@ -124,8 +124,8 @@ export function makeTextures(scene: Phaser.Scene) {
     });
   }
 
-  // Tiles: 0 grass, 1 dirt, 2 plank, 3 water top, 4 water, 5 rock.
-  tex(scene, 'tiles', 16 * 6, 16, 2, (p) => {
+  // Tiles: 0 grass, 1 dirt, 2 plank, 3 water top, 4 water, 5 rock, 6/7 grass edges, 8 dirt.
+  tex(scene, 'tiles', 16 * 9, 16, 2, (p) => {
     const dirt = (ox: number) => {
       p(ox, 0, 16, 16, '#7b4320');
       const stones = [[0, 0, 7, 5], [8, 0, 8, 6], [0, 6, 5, 6], [6, 7, 6, 5], [13, 7, 3, 5], [0, 13, 8, 3], [9, 13, 7, 3]];
@@ -147,6 +147,8 @@ export function makeTextures(scene: Phaser.Scene) {
     for (const [x, y, w] of [[0, 0, 7], [8, 0, 8], [0, 5, 4], [5, 5, 7], [13, 5, 3], [0, 10, 8], [9, 10, 7]] as const) {
       p(80 + x, y + 1, w - 1, 4, '#878a96'); p(80 + x, y + 1, w - 1, 1, '#a3a6b2');
     }
+    for (const ox of [96, 112]) { dirt(ox); p(ox, 0, 16, 4, '#5cbf3a'); p(ox, 0, 16, 1, '#8be04e'); }
+    dirt(128);
   });
 
   tex(scene, 'crate', 16, 16, 2, (p) => {
@@ -201,6 +203,7 @@ export function makeTextures(scene: Phaser.Scene) {
 
   tex(scene, 'heart', 7, 6, 2, (p) => rows(p, ['.rr.rr.', 'rwrrrrr', 'rrrrrrr', '.rrrrr.', '..rrr..', '...r...'], { r: '#e8313f', w: '#ffb3b8' }));
   tex(scene, 'heart_empty', 7, 6, 2, (p) => rows(p, ['.rr.rr.', 'rrrrrrr', 'rrrrrrr', '.rrrrr.', '..rrr..', '...r...'], { r: '#3a3f55' }));
+  for (const k of ['coin_1', 'coin_2', 'coin_3']) tex(scene, k, 8, 8, 2, (p) => rows(p, ['..oooo..', '.oyyyyo.', 'oyyyyyyo', 'oyyyyyyo', 'oyyyyyyo', 'oyyyyyyo', '.oyyyyo.', '..oooo..'], { o: '#b8740e', y: '#ffc928' }));
   tex(scene, 'coin', 8, 8, 2, (p) => rows(p, ['..oooo..', '.oyyyyo.', 'oyywyyyo', 'oyywyyyo', 'oyyyyyyo', 'oyyyyyyo', '.oyyyyo.', '..oooo..'], { o: '#b8740e', y: '#ffc928', w: '#fff3b0' }));
   tex(scene, 'star', 9, 9, 2, (p) => rows(p, ['....y....', '...yyy...', 'yyyyyyyyy', '.yyywyyy.', '..yyyyy..', '..yyyyy..', '.yyy.yyy.', '.yy...yy.', 'y.......y'], { y: '#ffd83a', w: '#fff6c2' }));
 

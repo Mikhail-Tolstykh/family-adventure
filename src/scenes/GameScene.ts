@@ -108,7 +108,7 @@ export class GameScene extends Phaser.Scene {
     const coins = this.physics.add.group({ allowGravity: false, immovable: true });
     for (const c of L.coins) {
       const s = coins.create(wx(c), c.y * TILE + TILE / 2, 'coin') as Sprite;
-      this.tweens.add({ targets: s, scaleX: 0.3, duration: 400, yoyo: true, repeat: -1, delay: (c.x * 70) % 800 });
+      s.play({ key: 'coin_spin', startFrame: c.x % 4 });
     }
     const stars = this.physics.add.group({ allowGravity: false, immovable: true });
     for (const c of L.stars) {
@@ -127,8 +127,8 @@ export class GameScene extends Phaser.Scene {
 
     // Crabs
     for (const c of L.crabs) {
-      const s = this.physics.add.sprite(wx(c), groundY(c) - 10, 'crab_a').play('crab_walk');
-      (s.body as Body).setSize(28, 16).setOffset(2, 4);
+      const s = this.physics.add.sprite(wx(c), groundY(c) - 12, 'crab_a').play('crab_walk');
+      (s.body as Body).setSize(s.width - 6, 16).setOffset(3, s.height - 16);
       this.crabs.push({ s, min: c.min * TILE, max: (c.max + 1) * TILE, dir: -1 });
     }
 
@@ -139,8 +139,9 @@ export class GameScene extends Phaser.Scene {
 
     // Moving platforms
     for (const m of L.movers) {
-      const s = this.physics.add.sprite(m.x * TILE + 48, m.y * TILE + 8, 'mplat');
-      (s.body as Body).setAllowGravity(false).setImmovable(true);
+      const s = this.physics.add.sprite(m.x * TILE + 48, 0, 'mplat');
+      s.y = m.y * TILE + s.height / 2;
+      (s.body as Body).setAllowGravity(false).setImmovable(true).setSize(s.width, 16, false).setOffset(0, 0);
       this.movers.push({ s, min: m.min * TILE + 48, max: (m.max + 1) * TILE - 48, speed: m.speed, dir: 1 });
     }
 
@@ -536,10 +537,18 @@ export class GameScene extends Phaser.Scene {
       const s = this.add.tileSprite(0, y, GAME_W, h, key).setOrigin(0).setScrollFactor(0);
       this.bg.push({ s, f });
     };
-    layer('bg_clouds', 90, 120, 0.08);
-    layer('bg_mountains', 154, 180, 0.2);
-    layer('bg_sea', 294, 140, 0.35);
-    this.add.rectangle(0, 434, GAME_W, 206, 0x2e8be6).setOrigin(0).setScrollFactor(0);
+    if (this.textures.get('bg_sea').getSourceImage().height > 200) {
+      // Painted art: 384px tall layers.
+      layer('bg_mountains', -25, 384, 0.12);
+      layer('bg_sea', 60, 384, 0.25);
+      this.add.rectangle(0, 440, GAME_W, 200, 0x279fed).setOrigin(0).setScrollFactor(0);
+      if (this.textures.exists('bg_trees')) layer('bg_trees', 425 - 269, 269, 0.5);
+    } else {
+      layer('bg_clouds', 90, 120, 0.08);
+      layer('bg_mountains', 154, 180, 0.2);
+      layer('bg_sea', 294, 140, 0.35);
+      this.add.rectangle(0, 434, GAME_W, 206, 0x2e8be6).setOrigin(0).setScrollFactor(0);
+    }
   }
 
   private createHud() {
@@ -558,7 +567,7 @@ export class GameScene extends Phaser.Scene {
       .lineStyle(2, 0xcfe3ff, 0.9).strokeRoundedRect(GAME_W - 122, y, 110, 40, 8);
     panel(12); panel(60);
     this.add.image(GAME_W - 100, 32, 'coin').setScale(1.4).setScrollFactor(0).setDepth(d + 1);
-    this.add.image(GAME_W - 100, 80, 'star').setScale(1.3).setScrollFactor(0).setDepth(d + 1);
+    this.add.image(GAME_W - 100, 80, 'star').setScale(1.2).setScrollFactor(0).setDepth(d + 1);
     const style = { fontFamily: 'monospace', fontSize: '18px', fontStyle: 'bold', color: '#ffffff' };
     const coins = this.add.text(GAME_W - 82, 32, '× 000', style).setOrigin(0, 0.5).setScrollFactor(0).setDepth(d + 1);
     const stars = this.add.text(GAME_W - 82, 80, '× 0/3', style).setOrigin(0, 0.5).setScrollFactor(0).setDepth(d + 1);
