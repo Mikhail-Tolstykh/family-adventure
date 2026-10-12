@@ -79,13 +79,43 @@ save(sky.convert('RGBA'), 'bg_sky')
 for name, key, box, dx, scale in [
     ('mountains.png', 'bg_mountains', (1215, 610, 1295, 690), -90, 0.5),
     ('sea-town.png', 'bg_sea', (1215, 675, 1290, 750), -70, 0.5),
-    ('foliage.png', 'bg_trees', (1215, 610, 1295, 690), -60, 0.35),
 ]:
     src = load(name)
     patch(src, box, dx)
     img = key_magenta(src)
     w, h = img.size
     save(mirror_tile(shrink(img, (round(w * scale), round(h * scale)))), key)
+
+# Trees strip: separate trees and bushes placed along one line, none crossing
+# the strip edges, so it repeats seamlessly.
+trees = key_magenta(load('trees.png'))
+bushes = key_magenta(load('bushes.png'))
+S = 0.3
+parts = {
+    'oak': trees.crop((28, 0, 680, 628)),
+    'pine': trees.crop((780, 92, 1144, 576)),
+    'cypress': trees.crop((1176, 44, 1364, 630)),
+    'bush': trees.crop((544, 536, 872, 768)),
+    'sapling': bushes.crop((536, 28, 696, 264)),
+    'dry': bushes.crop((728, 200, 1132, 476)),
+    'fern': bushes.crop((20, 456, 420, 768)),
+    'round': bushes.crop((456, 508, 924, 768)),
+}
+parts = {k: shrink(v, (round(v.width * S), round(v.height * S))) for k, v in parts.items()}
+order = [('oak', 10), ('fern', -30), ('cypress', 60), ('bush', 40), ('pine', 120), ('round', -20),
+         ('sapling', 50), ('cypress', 30), ('dry', 140), ('fern', 20), ('cypress', -10), ('round', 80)]
+H = max(p.height for p in parts.values())
+x = 20
+placed = []
+for name, gap in order:
+    p = parts[name]
+    placed.append((p, x))
+    x += p.width + gap if gap > 0 else p.width + gap
+strip_w = x + 40
+trees_strip = Image.new('RGBA', (strip_w, H), (0, 0, 0, 0))
+for p, px in placed:
+    trees_strip.alpha_composite(p, (px, H - p.height))
+save(trees_strip, 'bg_trees')
 
 sea = np.asarray(load('sea-town.png'))
 print('sea bottom color', '#%02x%02x%02x' % tuple(sea[760, 100]))

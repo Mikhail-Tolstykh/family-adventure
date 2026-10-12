@@ -542,7 +542,10 @@ export class GameScene extends Phaser.Scene {
       layer('bg_mountains', -25, 384, 0.12);
       layer('bg_sea', 60, 384, 0.25);
       this.add.rectangle(0, 440, GAME_W, 200, 0x279fed).setOrigin(0).setScrollFactor(0);
-      if (this.textures.exists('bg_trees')) layer('bg_trees', 425 - 269, 269, 0.5);
+      if (this.textures.exists('bg_trees')) {
+        const h = this.textures.get('bg_trees').getSourceImage().height;
+        layer('bg_trees', 422 - h, h, 0.5);
+      }
     } else {
       layer('bg_clouds', 90, 120, 0.08);
       layer('bg_mountains', 154, 180, 0.2);
