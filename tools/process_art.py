@@ -190,3 +190,24 @@ for i, (x0, y0, x1, y1) in enumerate(coin_boxes):
 save(fit(ic.crop((324, 320, 704, 688)), h=18), 'star')
 save(fit(ic.crop((44, 732, 324, 984)), 16, 14), 'heart')
 save(fit(ic.crop((704, 732, 984, 984)), 16, 14), 'heart_empty')
+
+# ---------- flat side-view objects (second batch, replaces the 3D-looking ones) ----------
+if (SRC / 'objects-flat.png').exists():
+    src = load('objects-flat.png')
+    patch(src, (1255, 615, 1325, 690), -90)
+    flat = key_magenta(src)
+    save(fit(flat.crop((48, 48, 360, 360)), 32, 32), 'crate')
+    save(fit(flat.crop((424, 84, 652, 360)), h=32), 'lever_off')
+    save(fit(flat.crop((760, 84, 988, 360)), h=32), 'lever_on')
+    save(shrink(flat.crop((48, 548, 1000, 624)), (96, 12)), 'mplat')
+    # Pillar: spiked bottom (cap + spikes) with stone blocks repeated up to 600px.
+    k = 64 / 300
+    bottom = shrink(flat.crop((1064, 430, 1364, 724)), (64, round(294 * k)))
+    unit = shrink(flat.crop((1064, 250, 1364, 430)), (64, round(180 * k)))
+    tall = Image.new('RGBA', (64, 600), (0, 0, 0, 0))
+    y = 600 - bottom.height
+    tall.paste(bottom, (0, y))
+    while y > 0:
+        y -= unit.height
+        tall.paste(unit, (0, y))
+    save(tall, 'crusher')

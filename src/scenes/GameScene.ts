@@ -141,7 +141,7 @@ export class GameScene extends Phaser.Scene {
     for (const m of L.movers) {
       const s = this.physics.add.sprite(m.x * TILE + 48, 0, 'mplat');
       s.y = m.y * TILE + s.height / 2;
-      (s.body as Body).setAllowGravity(false).setImmovable(true).setSize(s.width, 16, false).setOffset(0, 0);
+      (s.body as Body).setAllowGravity(false).setImmovable(true).setSize(s.width, s.height, false).setOffset(0, 0);
       this.movers.push({ s, min: m.min * TILE + 48, max: (m.max + 1) * TILE - 48, speed: m.speed, dir: 1 });
     }
 
