@@ -549,8 +549,10 @@ export class GameScene extends Phaser.Scene {
     if (this.textures.get('bg_sea').getSourceImage().height > 200) {
       // Painted art: 384px tall layers.
       layer('bg_mountains', -25, 384, 0.12);
-      layer('bg_sea', 60, 384, 0.25);
-      this.add.rectangle(0, 440, GAME_W, 200, 0x279fed).setOrigin(0).setScrollFactor(0);
+      // Coast strip: horizon at 216px from its top, kept at screen y 306.
+      const seaH = this.textures.get('bg_sea').getSourceImage().height;
+      layer('bg_sea', 90, seaH, 0.25);
+      this.add.rectangle(0, 90 + seaH - 2, GAME_W, GAME_H, 0x129be9).setOrigin(0).setScrollFactor(0);
       if (this.textures.exists('bg_trees')) {
         // The strip is trees standing on a thin band of shore (TREE_BASE px from its bottom).
         const h = this.textures.get('bg_trees').getSourceImage().height, TREE_BASE = 8;

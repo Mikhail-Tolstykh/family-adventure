@@ -134,6 +134,21 @@ with_ground.alpha_composite(band, (0, H - 8))
 with_ground.alpha_composite(trees_strip, (0, 0))
 save(with_ground, 'bg_trees')
 
+# Coast: two panoramas with open sea at both edges and the horizon on the same
+# row (432), placed one after the other, so the strip repeats without a seam.
+if (SRC / 'coast-town.png').exists():
+    parts = []
+    for name in ('coast-town.png', 'coast-lighthouse.png'):
+        src = load(name)
+        patch(src, (1430, 515, 1500, 585), -150)
+        img = key_magenta(src)
+        parts.append(shrink(img, (img.width // 2, img.height // 2)))
+    coast = Image.new('RGBA', (sum(p.width for p in parts), parts[0].height), (0, 0, 0, 0))
+    cx = 0
+    for p in parts:
+        coast.paste(p, (cx, 0)); cx += p.width
+    save(coast, 'bg_sea')
+
 sea = np.asarray(load('sea-town.png'))
 print('sea bottom color', '#%02x%02x%02x' % tuple(sea[760, 100]))
 
