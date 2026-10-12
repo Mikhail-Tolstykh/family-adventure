@@ -16,6 +16,8 @@ const groundY = (p: Pt) => (p.y + 1) * TILE;
 const toward = (v: number, target: number, step: number) => (v < target ? Math.min(v + step, target) : Math.max(v - step, target));
 
 const CRUSHER_UP = 300;
+// Feet are drawn this many pixels below the hitbox so they sit in the grass, not on top of it.
+const FEET_SINK = 2;
 const CRUSHER_DOWN = 16 * TILE;
 const CRUSHER_PERIOD = 1.1;
 
@@ -369,7 +371,7 @@ export class GameScene extends Phaser.Scene {
     p.setTexture(f.tex);
     // Body is centered on the frame and stands on its bottom edge, whatever the frame size.
     const [w, h] = f.body;
-    const ox = (p.width - w) / 2, oy = p.height - h;
+    const ox = (p.width - w) / 2, oy = p.height - h - FEET_SINK;
     b.setSize(w, h, false).setOffset(ox, oy);
     b.reset(cx, bottom - h - oy + p.height * p.originY);
     b.setVelocity(vx, vy);
@@ -550,8 +552,9 @@ export class GameScene extends Phaser.Scene {
       layer('bg_sea', 60, 384, 0.25);
       this.add.rectangle(0, 440, GAME_W, 200, 0x279fed).setOrigin(0).setScrollFactor(0);
       if (this.textures.exists('bg_trees')) {
-        const h = this.textures.get('bg_trees').getSourceImage().height;
-        layer('bg_trees', 422 - h, h, 0.5);
+        // The strip is trees standing on a thin band of shore (TREE_BASE px from its bottom).
+        const h = this.textures.get('bg_trees').getSourceImage().height, TREE_BASE = 8;
+        layer('bg_trees', 432 - (h - TREE_BASE), h, 0.5);
       }
     } else {
       layer('bg_clouds', 90, 120, 0.08);

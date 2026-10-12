@@ -115,7 +115,24 @@ strip_w = x + 40
 trees_strip = Image.new('RGBA', (strip_w, H), (0, 0, 0, 0))
 for p, px in placed:
     trees_strip.alpha_composite(p, (px, H - p.height))
-save(trees_strip, 'bg_trees')
+# A thin strip of far shore under the trees, so they stand on land and pits
+# still show the sea below.
+BAND = 16
+ground_src = key_magenta(load('tiles.png'))
+g_top = shrink(ground_src.crop((260, 4, 508, 252)), (16, 16))
+g_fill = shrink(ground_src.crop((8, 264, 252, 508)), (16, 16))
+band = Image.new('RGBA', (strip_w, BAND), (0, 0, 0, 0))
+for bx in range(0, strip_w, 16):
+    band.paste(g_top, (bx, 0))
+    for by in range(16, BAND, 16):
+        band.paste(g_fill, (bx, by))
+shade = np.asarray(band).astype(float)
+shade[..., :3] *= 0.8
+band = Image.fromarray(shade.astype(np.uint8), 'RGBA')
+with_ground = Image.new('RGBA', (strip_w, H + BAND - 8), (0, 0, 0, 0))
+with_ground.alpha_composite(band, (0, H - 8))
+with_ground.alpha_composite(trees_strip, (0, 0))
+save(with_ground, 'bg_trees')
 
 sea = np.asarray(load('sea-town.png'))
 print('sea bottom color', '#%02x%02x%02x' % tuple(sea[760, 100]))
@@ -132,7 +149,7 @@ def tile(box, size=(T, T), at=(0, 0)):
 strip.paste(tile((260, 4, 508, 252)), (0, 0))
 strip.paste(tile((8, 264, 252, 508)), (T, 0))
 plank = tile((8, 560, 252, 728), (T, 22))
-strip.paste(plank, (2 * T, 2))
+strip.paste(plank, (2 * T, 0))
 water_top = tile((8, 804, 252, 1020), (T, 28))
 wt = Image.new('RGBA', (T, T), (0, 0, 0, 0))
 wt.paste(water_top, (0, 4))
@@ -143,9 +160,9 @@ strip.paste(tile((264, 520, 508, 764)), (5 * T, 0))
 strip.paste(tile((4, 4, 252, 252)), (6 * T, 0))
 strip.paste(tile((516, 4, 764, 252)), (7 * T, 0))
 strip.paste(tile((264, 264, 508, 508)), (8 * T, 0))
-# Water lets the background show through a little.
+# Water is opaque so the ground behind the trees never shows through it.
 a = np.asarray(strip).copy()
-a[:, 3 * T:5 * T, 3] = (a[:, 3 * T:5 * T, 3] * 0.85).astype(np.uint8)
+a[:, 3 * T:5 * T, 3] = np.where(a[:, 3 * T:5 * T, 3] > 0, 255, 0).astype(np.uint8)
 save(Image.fromarray(a, 'RGBA'), 'tiles')
 
 # ---------- objects ----------
