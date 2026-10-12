@@ -318,10 +318,13 @@ def strip_box_right(img):
     return img.crop((0, 0, x - 2, img.height))
 
 
-def sheet_frames(name, cut_below=None):
+def sheet_frames(name, cut_below=None, erase_rows=()):
     src = load(name)
-    if cut_below:  # a drawn ground line glues frames together
-        a = np.asarray(src).copy(); a[cut_below:] = (255, 0, 255); src = Image.fromarray(a)
+    if cut_below or erase_rows:  # drawn ground lines glue frames together
+        a = np.asarray(src).copy()
+        if cut_below: a[cut_below:] = (255, 0, 255)
+        for y0, y1 in erase_rows: a[y0:y1] = (255, 0, 255)
+        src = Image.fromarray(a)
     keyed = key_magenta(src)
     alpha = np.asarray(keyed)[..., 3]
     return [largest_only(keyed.crop(b)) for b in components(alpha)]
@@ -348,7 +351,7 @@ def character(hero, canvas, stand_px, sheets):
     idle = sheet_frames(sheets['idle'][0])
     k = stand_px / max(f.getbbox()[3] - f.getbbox()[1] for f in idle)
     for anim, (file, rel, opts) in sheets.items():
-        frames = idle if anim == 'idle' else sheet_frames(file, opts.get('cut_below'))
+        frames = idle if anim == 'idle' else sheet_frames(file, opts.get('cut_below'), opts.get('erase_rows', ()))
         frames = frames[: opts.get('take', len(frames))][:: opts.get('step', 1)]
         if opts.get('crate'):
             frames = [strip_box_right(f) for f in frames]
@@ -361,7 +364,7 @@ def character(hero, canvas, stand_px, sheets):
 if (SRC / 'dad-idle.png').exists():
     character('dad', (48, 56), 50, {
         'idle': ('dad-idle.png', 1, {'take': 3}),
-        'run': ('dad-run.png', 3.5, {'step': 2}),
+        'run': ('dad-run.png', 1.6, {'erase_rows': [(403, 409), (777, 783)]}),
         'jump': ('dad-jump.png', 1, {}),
         'push': ('dad-push.png', 2.0, {'crate': True}),
     })
