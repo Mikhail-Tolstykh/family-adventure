@@ -38,6 +38,7 @@ export class GameScene extends Phaser.Scene {
   private knockT = 0;
   private invuln = 0;
   private exitWaterT = 0;
+  private pushT = 0;
   private slowT = 0;
   private slowCd = 0;
   private time01 = 0;
@@ -155,7 +156,10 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.layer);
     this.physics.add.collider(this.crates, this.layer);
     this.physics.add.collider(this.crates, this.crates);
-    this.physics.add.collider(this.player, this.crates);
+    this.physics.add.collider(this.player, this.crates, (_p, c) => {
+      const pb = this.player.body as Body, cb = (c as Sprite).body as Body;
+      if (this.active === 'dad' && pb.bottom > cb.top + 6) this.pushT = 0.15;
+    });
     this.physics.add.collider(this.player, this.movers.map((m) => m.s));
     for (const c of this.crabs) this.physics.add.collider(c.s, this.layer);
     this.physics.add.overlap(this.player, coins, (_p, c) => this.collect(c as Sprite, 'coin'));
@@ -346,7 +350,8 @@ export class GameScene extends Phaser.Scene {
     if (this.jumpHeld && !input.jump && b.velocity.y < -200) { b.setVelocityY(b.velocity.y * 0.5); this.jumpHeld = false; }
     if (b.velocity.y >= 0) this.jumpHeld = false;
 
-    const anim = !onGround ? 'jump' : dir !== 0 ? 'run' : 'idle';
+    if (this.pushT > 0) this.pushT -= dt;
+    const anim = !onGround ? (b.velocity.y < 0 ? 'jump' : 'fall') : dir !== 0 ? (this.pushT > 0 ? 'push' : 'run') : 'idle';
     p.play(`${this.active}_${anim}`, true);
   }
 
@@ -362,7 +367,9 @@ export class GameScene extends Phaser.Scene {
     const b = p.body as Body;
     const bottom = b.bottom, cx = b.center.x, vx = b.velocity.x, vy = b.velocity.y;
     p.setTexture(f.tex);
-    const [w, h, ox, oy] = f.body;
+    // Body is centered on the frame and stands on its bottom edge, whatever the frame size.
+    const [w, h] = f.body;
+    const ox = (p.width - w) / 2, oy = p.height - h;
     b.setSize(w, h, false).setOffset(ox, oy);
     b.reset(cx, bottom - h - oy + p.height * p.originY);
     b.setVelocity(vx, vy);

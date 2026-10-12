@@ -15,15 +15,15 @@ export const ORDER: CharId[] = ['dad', 'mom', 'girl'];
 
 export interface Form {
   tex: string;
-  body: [w: number, h: number, ox: number, oy: number];
+  body: [w: number, h: number]; // hitbox, centered on the frame's bottom edge
 }
 
 export const CHARS: Record<CharId, { name: string; ability: string; form: Form }> = {
-  dad: { name: 'Папа', ability: 'СИЛА', form: { tex: 'dad_idle', body: [16, 44, 6, 4] } },
-  mom: { name: 'Мама', ability: 'ВРЕМЯ', form: { tex: 'mom_idle', body: [16, 42, 6, 6] } },
-  girl: { name: 'Дочка', ability: 'ВОДА', form: { tex: 'girl_idle', body: [14, 30, 5, 4] } },
+  dad: { name: 'Папа', ability: 'СИЛА', form: { tex: 'dad_idle', body: [16, 44] } },
+  mom: { name: 'Мама', ability: 'ВРЕМЯ', form: { tex: 'mom_idle', body: [16, 42] } },
+  girl: { name: 'Дочка', ability: 'ВОДА', form: { tex: 'girl_idle', body: [14, 30] } },
 };
 
-export const AXOLOTL: Form = { tex: 'axo_a', body: [26, 12, 3, 4] };
+export const AXOLOTL: Form = { tex: 'axo_a', body: [26, 12] };
 
 export const SLOW = { factor: 0.3, duration: 5, cooldown: 4 };

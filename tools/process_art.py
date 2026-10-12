@@ -217,3 +217,115 @@ if (SRC / 'objects-flat.png').exists():
         y -= unit.height
         tall.paste(unit, (0, y))
     save(tall, 'crusher')
+
+
+# ---------- characters ----------
+from collections import deque
+
+
+def components(alpha, min_area=2000):
+    """Bounding boxes of opaque blobs, left-to-right then top-to-bottom (by row band)."""
+    small = alpha[::4, ::4] > 0
+    h, w = small.shape
+    seen = np.zeros_like(small, bool)
+    boxes = []
+    for y in range(h):
+        for x in range(w):
+            if small[y, x] and not seen[y, x]:
+                q = deque([(y, x)]); seen[y, x] = True; ys = []; xs = []
+                while q:
+                    cy, cx = q.popleft(); ys.append(cy); xs.append(cx)
+                    for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+                        if 0 <= ny < h and 0 <= nx < w and small[ny, nx] and not seen[ny, nx]:
+                            seen[ny, nx] = True; q.append((ny, nx))
+                if len(ys) * 16 >= min_area:
+                    boxes.append((min(xs) * 4, min(ys) * 4, (max(xs) + 1) * 4, (max(ys) + 1) * 4))
+    boxes.sort(key=lambda b: (b[1] // 250, b[0]))
+    return boxes
+
+
+def largest_only(img):
+    """Drop stray specks (watermark, crumbs) around a single sprite."""
+    a = np.asarray(img).copy()
+    m = a[..., 3] > 0
+    h, w = m.shape
+    lab = np.zeros((h, w), np.int32); best = (0, 0); n = 0
+    for y in range(h):
+        for x in range(w):
+            if m[y, x] and not lab[y, x]:
+                n += 1; q = deque([(y, x)]); lab[y, x] = n; size = 0
+                while q:
+                    cy, cx = q.popleft(); size += 1
+                    for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+                        if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not lab[ny, nx]:
+                            lab[ny, nx] = n; q.append((ny, nx))
+                if size > best[1]: best = (n, size)
+    a[..., 3] = np.where(lab == best[0], a[..., 3], 0)
+    return Image.fromarray(a, 'RGBA')
+
+
+def strip_box_right(img):
+    """Cut away a crate on the right: columns sharing the crate's top and bottom rows."""
+    m = np.asarray(img)[..., 3] > 0
+    cols = [np.flatnonzero(m[:, x]) for x in range(m.shape[1])]
+    x = m.shape[1] - 1
+    while x > 0 and len(cols[x]) == 0: x -= 1
+    ref = [cols[i] for i in range(x - 12, x - 2) if len(cols[i])]
+    top, bot = int(np.median([c[0] for c in ref])), int(np.median([c[-1] for c in ref]))
+    x -= 2
+    while x > 0 and len(cols[x]) and abs(cols[x][0] - top) <= 6 and abs(cols[x][-1] - bot) <= 6:
+        x -= 1
+    return img.crop((0, 0, x - 2, img.height))
+
+
+def sheet_frames(name, cut_below=None):
+    src = load(name)
+    if cut_below:  # a drawn ground line glues frames together
+        a = np.asarray(src).copy(); a[cut_below:] = (255, 0, 255); src = Image.fromarray(a)
+    keyed = key_magenta(src)
+    alpha = np.asarray(keyed)[..., 3]
+    return [largest_only(keyed.crop(b)) for b in components(alpha)]
+
+
+def place(frames, k, canvas):
+    """Scale by k, stand on the canvas bottom, center on head+shoulders."""
+    out = []
+    cw, ch = canvas
+    for f in frames:
+        f = f.crop(f.getbbox())
+        s = shrink(f, (max(1, round(f.width * k)), max(1, round(f.height * k))))
+        m = np.asarray(s)[..., 3] > 0
+        top = m[: max(1, int(s.height * 0.4))]
+        cx = np.flatnonzero(top.any(axis=0)).mean() if top.any() else s.width / 2
+        c = Image.new('RGBA', canvas, (0, 0, 0, 0))
+        c.alpha_composite(s, (int(round(cw / 2 - cx)), ch - s.height)) if s.height <= ch else None
+        out.append(c)
+    return out
+
+
+def character(hero, canvas, stand_px, sheets):
+    """sheets: {anim: (file, scale_vs_idle, options)}; scale from the idle sheet's standing height."""
+    idle = sheet_frames(sheets['idle'][0])
+    k = stand_px / max(f.getbbox()[3] - f.getbbox()[1] for f in idle)
+    for anim, (file, rel, opts) in sheets.items():
+        frames = idle if anim == 'idle' else sheet_frames(file, opts.get('cut_below'))
+        frames = frames[: opts.get('take', len(frames))]
+        if opts.get('crate'):
+            frames = [strip_box_right(f) for f in frames]
+        for i, f in enumerate(place(frames, k * rel, canvas)):
+            save(f, f'{hero}_{anim}_{i}')
+            if anim == 'idle' and i == 0:
+                save(f, f'{hero}_idle')
+
+
+if (SRC / 'dad-idle.png').exists():
+    character('dad', (48, 56), 50, {
+        'idle': ('dad-idle.png', 1, {'take': 3}),
+        'run': ('dad-run.png', 1, {'cut_below': 735}),
+        'jump': ('dad-jump.png', 1, {}),
+        'push': ('dad-push.png', 2.0, {'crate': True}),
+    })
+
+# Manifest of every image, read by the game at startup.
+import json
+(OUT / 'manifest.json').write_text(json.dumps(sorted(p.stem for p in OUT.glob('*.png'))))
