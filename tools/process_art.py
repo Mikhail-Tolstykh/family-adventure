@@ -272,8 +272,16 @@ def components(alpha, min_area=2000):
                             seen[ny, nx] = True; q.append((ny, nx))
                 if len(ys) * 16 >= min_area:
                     boxes.append((min(xs) * 4, min(ys) * 4, (max(xs) + 1) * 4, (max(ys) + 1) * 4))
-    boxes.sort(key=lambda b: (b[1] // 250, b[0]))
-    return boxes
+    # Group into rows: a box joins a row when its center is within half a sprite height.
+    boxes.sort(key=lambda b: (b[1] + b[3]) / 2)
+    rows = []
+    for b in boxes:
+        cy = (b[1] + b[3]) / 2
+        if rows and cy - rows[-1][0] < (b[3] - b[1]) / 2:
+            rows[-1][1].append(b)
+        else:
+            rows.append([cy, [b]])
+    return [b for _, r in rows for b in sorted(r)]
 
 
 def largest_only(img):
@@ -353,7 +361,7 @@ def character(hero, canvas, stand_px, sheets):
 if (SRC / 'dad-idle.png').exists():
     character('dad', (48, 56), 50, {
         'idle': ('dad-idle.png', 1, {'take': 3}),
-        'run': ('dad-run.png', 1.1, {'cut_below': 646}),
+        'run': ('dad-run.png', 3.5, {}),
         'jump': ('dad-jump.png', 1, {}),
         'push': ('dad-push.png', 2.0, {'crate': True}),
     })

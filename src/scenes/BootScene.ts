@@ -28,7 +28,7 @@ export class BootScene extends Phaser.Scene {
     for (const id of ['dad', 'mom', 'girl']) {
       const idle = numbered(`${id}_idle`), run = numbered(`${id}_run`), jump = numbered(`${id}_jump`);
       anim(`${id}_idle`, idle.length ? [...idle, ...idle.slice(1, -1).reverse()] : [`${id}_idle`], 3);
-      anim(`${id}_run`, run.length ? run : [`${id}_runA`, `${id}_idle`, `${id}_runB`, `${id}_idle`], 12);
+      anim(`${id}_run`, run.length ? run : [`${id}_runA`, `${id}_idle`, `${id}_runB`, `${id}_idle`], run.length > 12 ? 30 : 12); // long sheets are smooth in-betweens
       anim(`${id}_jump`, [jump.length > 1 ? jump[1] : `${id}_jump`], 1, 0);
       anim(`${id}_fall`, [jump.length > 2 ? jump[2] : `${id}_jump`], 1, 0);
       const push = numbered(`${id}_push`);
