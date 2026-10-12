@@ -181,11 +181,17 @@ ic = load('icons.png')
 left = ic.crop((704, 732, 844, 984))
 ic.paste(ImageOps.mirror(left), (844, 732))
 ic = key_magenta(ic)
-coin_boxes = [(44, 56, 280, 288), (320, 56, 548, 288), (620, 56, 676, 288), (752, 56, 984, 288)]
-for i, (x0, y0, x1, y1) in enumerate(coin_boxes):
-    w = max(1, round((x1 - x0) * 16 / 236))
+# Spin frames: front, half-turned, edge, half-turned. Gemini drew the half-turned
+# coins lying flat (wide ellipse), so they are rotated to stand upright.
+coin_boxes = [(44, 56, 280, 288, False), (320, 84, 548, 256, True), (620, 56, 676, 288, False), (752, 84, 984, 256, True)]
+for i, (x0, y0, x1, y1, rot) in enumerate(coin_boxes):
+    c = ic.crop((x0, y0, x1, y1))
+    if rot:
+        c = c.rotate(90, expand=True)
+    k = 16 / 236
+    w, h = max(1, round(c.width * k)), min(16, round(c.height * k))
     frame = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
-    frame.paste(shrink(ic.crop((x0, y0, x1, y1)), (w, 16)), ((16 - w) // 2, 0))
+    frame.paste(shrink(c, (w, h)), ((16 - w) // 2, (16 - h) // 2))
     save(frame, 'coin' if i == 0 else f'coin_{i}')
 save(fit(ic.crop((324, 320, 704, 688)), h=18), 'star')
 save(fit(ic.crop((44, 732, 324, 984)), 16, 14), 'heart')
