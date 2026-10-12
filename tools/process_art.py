@@ -353,7 +353,7 @@ def character(hero, canvas, stand_px, sheets):
 if (SRC / 'dad-idle.png').exists():
     character('dad', (48, 56), 50, {
         'idle': ('dad-idle.png', 1, {'take': 3}),
-        'run': ('dad-run.png', 1, {'cut_below': 735}),
+        'run': ('dad-run.png', 1.1, {'cut_below': 646}),
         'jump': ('dad-jump.png', 1, {}),
         'push': ('dad-push.png', 2.0, {'crate': True}),
     })
