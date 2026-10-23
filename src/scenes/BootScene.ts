@@ -37,6 +37,6 @@ export class BootScene extends Phaser.Scene {
     this.anims.create({ key: 'axo_swim', frames: [{ key: 'axo_a' }, { key: 'axo_b' }], frameRate: 5, repeat: -1 });
     this.anims.create({ key: 'coin_spin', frames: ['coin', 'coin_1', 'coin_2', 'coin_3'].map((key) => ({ key })), frameRate: 8, repeat: -1 });
     this.anims.create({ key: 'crab_walk', frames: [{ key: 'crab_a' }, { key: 'crab_b' }], frameRate: 6, repeat: -1 });
-    this.scene.start('game');
+    this.scene.start(new URLSearchParams(location.search).has('level') ? 'game' : 'menu', { level: Number(new URLSearchParams(location.search).get('level') ?? 1) - 1 });
   }
 }

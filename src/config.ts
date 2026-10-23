@@ -27,3 +27,7 @@ export const CHARS: Record<CharId, { name: string; ability: string; form: Form }
 export const AXOLOTL: Form = { tex: 'axo_a', body: [26, 12] };
 
 export const SLOW = { factor: 0.3, duration: 5, cooldown: 4 };
+
+// Dad and mom float on the surface; only the axolotl dives.
+export const SWIM = { speed: 110, axoSpeed: 140 };
+export const DASH = { speed: 380, time: 0.28, cooldown: 0.8 };

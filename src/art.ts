@@ -207,7 +207,48 @@ export function makeTextures(scene: Phaser.Scene) {
   tex(scene, 'coin', 8, 8, 2, (p) => rows(p, ['..oooo..', '.oyyyyo.', 'oyywyyyo', 'oyywyyyo', 'oyyyyyyo', 'oyyyyyyo', '.oyyyyo.', '..oooo..'], { o: '#b8740e', y: '#ffc928', w: '#fff3b0' }));
   tex(scene, 'star', 9, 9, 2, (p) => rows(p, ['....y....', '...yyy...', 'yyyyyyyyy', '.yyywyyy.', '..yyyyy..', '..yyyyy..', '.yyy.yyy.', '.yy...yy.', 'y.......y'], { y: '#ffd83a', w: '#fff6c2' }));
 
+  makeHazards(scene);
   makeBackgrounds(scene);
+}
+
+// Real-world hazards: rocks, seagulls, barrels, sea creatures.
+function makeHazards(scene: Phaser.Scene) {
+  tex(scene, 'rock', 14, 12, 2, (p) => rows(p, [
+    '....gggg......', '..gghhhggg....', '.ghhhhhhhggg..', 'ghhhlhhhhhhgg.', 'ghhhhhhhhhhhgg', 'gghhhhhhhhhhgg',
+    'gghhhhhhhhhhhg', '.gghhhhhhhhhgg', '.ggghhhhhhhggg', '..ggggghhhggg.', '...gggggggg...', '.....gggg.....',
+  ], { g: '#5c5f6b', h: '#8c909c', l: '#c3c6d0' }));
+  for (const [key, up] of [['gull_a', true], ['gull_b', false]] as const) {
+    tex(scene, key, 18, 10, 2, (p) => rows(p, up ? [
+      '..gg..............', '...ggg............', '....gggw..........', '.....gwwwwwwwk....', '......wwwwwwwwwyy.',
+      '.......wwwwwwww...', '.........ddd......', '..................', '..................', '..................',
+    ] : [
+      '..................', '..................', '..................', '.....wwwwwwwwk....', '...ggwwwwwwwwwwyy.',
+      '..gggggwwwwwww....', '.ggg....ddd.......', '.g................', '..................', '..................',
+    ], { w: '#f4f4f4', g: '#9aa3b0', k: '#1d1d24', y: '#ffb020', d: '#ffb020' }));
+  }
+  tex(scene, 'barrel', 12, 12, 2, (p) => rows(p, [
+    '...bbbbbb...', '.bbBBBBBBbb.', '.bBBBBBBBBb.', 'bBBhBBBBhBBb', 'bBBhBBBBhBBb', 'bbbhbbbbhbbb',
+    'bBBhBBBBhBBb', 'bBBhBBBBhBBb', 'bBBhBBBBhBBb', '.bBBBBBBBBb.', '.bbBBBBBBbb.', '...bbbbbb...',
+  ], { b: '#5a3416', B: '#a8662e', h: '#3b3b44' }));
+  tex(scene, 'shark', 30, 12, 2, (p) => rows(p, [
+    '..............ss..............', '.............sss..............', '............ssss..............',
+    'ss........sssssssssss.........', 'sss....sssssssssssssssssss....', '.sssssssssssssssssssssskssss..',
+    '..ssssssssssssssssssssssssssss', '.sssswwwwwwwwwwwwwwwwwwwwwww..', 'sss...wwwwwwwwwwwwwwwwwww.....',
+    'ss.........ss....ss...........', '...........s......s...........', '..............................',
+  ], { s: '#6f8396', w: '#dfe7ee', k: '#111' }));
+  tex(scene, 'octo', 16, 14, 2, (p) => rows(p, [
+    '.....pppppp.....', '...pppppppppp...', '..pppppppppppp..', '..ppwkppppwkpp..', '..ppwkppppwkpp..', '..pppppppppppp..',
+    '...pppppppppp...', '..pp.pp..pp.pp..', '.pp..pp..pp..pp.', '.p..pp....pp..p.', 'pp..p......p..pp',
+    'p..pp......pp..p', '...p........p...', '..pp........pp..',
+  ], { p: '#c0457a', w: '#fff', k: '#111' }));
+  tex(scene, 'ink', 6, 6, 2, (p) => rows(p, ['.iiii.', 'iiiiii', 'iiIiii', 'iiiiii', 'iiiiii', '.iiii.'], { i: '#24123a', I: '#5a3b7a' }));
+  tex(scene, 'jelly', 12, 14, 2, (p) => rows(p, [
+    '....jjjj....', '..jjjjjjjj..', '.jjjJJjjjjj.', 'jjjJJjjjjjjj', 'jjjjjjjjjjjj', 'tttttttttttt', '.t..t..t..t.',
+    '.t..t..t..t.', 't..t..t..t..', 't..t..t..t..', '.t..t..t..t.', '.t..t..t..t.', 't..t..t..t..', '............',
+  ], { j: 'rgba(255,140,200,0.85)', J: '#ffe0f0', t: 'rgba(255,170,215,0.8)' }));
+  tex(scene, 'urchin', 12, 8, 2, (p) => rows(p, [
+    '..k..k..k...', 'k..k.kk.k..k', '.k.kkkkkk.k.', '..kkuuuukk..', 'kkkuuuuuukkk', '.kuuuuuuuuk.', 'kuuuuuuuuuuk', '.kuuuuuuuuk.',
+  ], { k: '#2b1d3a', u: '#5b3d78' }));
 }
 
 function makeBackgrounds(scene: Phaser.Scene) {
