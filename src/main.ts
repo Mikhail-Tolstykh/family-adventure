@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import Phaser from 'phaser';
 import { GAME_W, GAME_H, PHYS } from './config';
 import { BootScene } from './scenes/BootScene';
@@ -20,3 +21,8 @@ const game = new Phaser.Game({
 
 // Handy for debugging from the browser console.
 (window as unknown as { game: Phaser.Game }).game = game;
+
+// Offline play: cache the game once it has been opened with internet (see public/sw.js).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => { /* e.g. inside a preview frame */ });
+}
